@@ -4,11 +4,11 @@
 ###
 
 fbgrab: fbgrab.c
-	gcc -g -Wall fbgrab.c -lpng -lz -o fbgrab
+	$(CC) -g -Wall fbgrab.c -lpng -lz -o fbgrab
 
 install:
-	install fbgrab /usr/bin/fbgrab
-	install fbgrab.1.man /usr/man/man1/fbgrab.1
+	install -D fbgrab $(DESTDIR)/usr/bin/fbgrab
+	install -D fbgrab.1.man $(DESTDIR)/usr/man/man1/fbgrab.1
 
 clean:
 	rm -f fbgrab *~ \#*\#
