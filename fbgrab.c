@@ -403,7 +403,7 @@ int main(int argc, char **argv)
 
     for(;;)
     {
-	optc=getopt(argc, argv, "f:z:w:b:gh:iC:c:d:s:?:v");
+	optc=getopt(argc, argv, "f:z:w:b:h:iC:c:d:s:?v");
 	if (optc==-1)
 	    break;
 	switch (optc) 
