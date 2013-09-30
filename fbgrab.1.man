@@ -1,0 +1,104 @@
+.TH fbgrab 1 "(C) 2002 Gunnar Monell, GPL"
+.SH NAME
+\fBfbgrab\fP - takes screenshots using the framebuffer device
+.SH SYNOPSIS
+.B fbgrab [options] filename
+.SH DESCRIPTION
+.B fbgrab
+reads the \fBframebuffer device\fP (/dev/fb*) or a dump thereof and
+saves a \fBPNG\fP image file. You can use it for making screenshots of
+of virtually any application, from traditional test applications to your
+X-windows desktop, as well as framebuffer applications.
+.SH OPTIONS
+.TP
+.B -?
+print usage information.
+.TP
+.B -b bitdepth
+the number of bits per pixel used, optional when reading from device.
+.TP
+.B -c console
+specifies which \fBconsole\fP (or virtual terminal - like other 
+people call this feature) to grab. Sometimes this changing is 
+faster then the framebuffer is refreshed (especially when grabbing
+framebuffer apps). If so, you should \fBuse -C console\fP ... This
+waits some time before grabbing. You can't use \fB-s\fP in this case.
+.TP
+.B -d device
+specifies which framebuffer device you want to read. If 
+you do not use this option, it takes the value from the 
+\fBFRAMEBUFFER\fP environment variable. If no FRAMEBUFFER 
+environment variable is given or if its value is \fBNULL\fP, then
+DEFAULT_FB is taken. (see source code), which usually is /dev/fb0.
+.TP
+.B -f filename
+Read from from file instead of device, requires that -w (width), -h (height) and
+-b (bitdepth) are specified. 
+.TP
+.B -h height
+the height of the frambeuffer in pixels, optional when reading from device.
+.TP
+.B -i 
+turns \fBoff\fP interlacing. If you do not want \fBADAM7 interlacing\fP, 
+you should use the \fB-i\fP option.
+.TP
+.B -s seconds
+specifies how many seconds to wait before grabbing. \fBfbshot\fP
+does not lock console switching, so you can switch it while 
+waiting, if you cannot use -c requires normally that fbgrab is run as root.
+.TP
+.B -w width
+the width of the frambeuffer in pixels, optional when reading from device.
+
+.SH TODO
+* Low-end bit depths, eg 1, 2, 4 & 8 bits.
+.TP
+* Grab just part of framebuffer/file.
+.TP
+* Companion program fbput that would display a picture in the frambuffer.
+.TP
+* Better utilization of the PNG-lib, all formats are first converted to 32 bitdepth and then stored as PNG - hardly the right approach.
+
+.SH BUGS
+Some framebuffer seams to store the data for one fixed resolution even if
+the resolution is set to something lower. In these cases the fixed size has
+to be specified and the picture has to be cut in a separate program afterwards.
+
+.SH EXAMPLES
+
+.P
+fbgrab fb.png
+.P
+will take a framebuffer snapshot, or if you don't have fbgrab at your machine, you can do
+.P
+cp /dev/fb0 framebuffer.dump
+.P
+and then 
+.P	
+fbgrab -w 1024 -h 768 -b 16 -f framebuffer.dump fb.png
+.P
+to convert it to a picture.
+
+.SH AUTHOR
+Written by Gunnar Monell <gmo@linux.nu>.
+Basically a rewrite of fbshot by Stephan Beyer <fbshot@s-beyer.de>
+
+.SH COPYRIGHT (C) 
+.P
+(C) 2002 Gunnar Monell <gmo@linux.nu>
+.P 
+(C) 2000 Stephan Beyer <fbshot@s-beyer.de>
+.P
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License.
+.P
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+.P
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
