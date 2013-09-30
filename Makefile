@@ -7,7 +7,7 @@
 .PHONY: install clean all
 
 GZIP := gzip
-GZIPFLAGS := -k --best --to-stdout
+GZIPFLAGS := --best --to-stdout
 
 all: fbgrab fbgrab.1.gz
 
