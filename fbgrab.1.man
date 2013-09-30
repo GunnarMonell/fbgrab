@@ -47,22 +47,18 @@ specifies how many seconds to wait before grabbing. \fBfbshot\fP
 does not lock console switching, so you can switch it while 
 waiting, if you cannot use -c requires normally that fbgrab is run as root.
 .TP
+.B -v verbose 
+be verbose 
+.TP
 .B -w width
 the width of the frambeuffer in pixels, optional when reading from device.
 
 .SH TODO
 * Low-end bit depths, eg 1, 2, 4 & 8 bits.
 .TP
-* Grab just part of framebuffer/file.
-.TP
 * Companion program fbput that would display a picture in the frambuffer.
 .TP
 * Better utilization of the PNG-lib, all formats are first converted to 32 bitdepth and then stored as PNG - hardly the right approach.
-
-.SH BUGS
-Some framebuffer seams to store the data for one fixed resolution even if
-the resolution is set to something lower. In these cases the fixed size has
-to be specified and the picture has to be cut in a separate program afterwards.
 
 .SH EXAMPLES
 
@@ -85,7 +81,7 @@ Basically a rewrite of fbshot by Stephan Beyer <fbshot@s-beyer.de>
 
 .SH COPYRIGHT (C) 
 .P
-(C) 2002 Gunnar Monell <gmo@linux.nu>
+(C) 2002-2013 Gunnar Monell <gmo@linux.nu>
 .P 
 (C) 2000 Stephan Beyer <fbshot@s-beyer.de>
 .P

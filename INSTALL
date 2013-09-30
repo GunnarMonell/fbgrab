@@ -3,7 +3,6 @@ requirements to build:
 you need these on your system:
 libpng 
 libz   
-splint http://www.splint.org/
 
 to build:
 run 

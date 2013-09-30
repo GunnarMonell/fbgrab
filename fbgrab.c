@@ -23,6 +23,7 @@
 #include <getopt.h>
 #include <sys/vt.h>   /* to handle vt changing */
 #include <png.h>      /* PNG lib */
+#include <zlib.h>
 #include <linux/fb.h> /* to handle framebuffer ioctls */
 
 #define	VERSION	"1.0 beta 1"
@@ -64,6 +65,7 @@ static void help(char *binary)
 	   "\t\tcan be used to force height when reading from framebuffer\n");
     printf("\t-i    \tturns on interlacing in PNG\n");
     printf("\t-s n  \tsleep n seconds before making screenshot\n");
+    printf("\t-v    \tverbose, print debug information.\n");
     printf("\t-w n  \tset width to n pixels, required when reading from file\n"
 	   "\t\tcan be used to force width when reading from framebuffer\n");
     printf("\t-?    \tprint this usage information\n");
@@ -109,7 +111,7 @@ static unsigned short int change_to_vt(unsigned short int vt_num)
     return old_vt;
 }
 
-static void get_framebufferdata(char *device, struct fb_var_screeninfo *fb_varinfo_p)
+static void get_framebufferdata(char *device, struct fb_var_screeninfo *fb_varinfo_p, int verbose)
 {
     int fd;
     struct fb_fix_screeninfo fb_fixedinfo;
@@ -127,42 +129,45 @@ static void get_framebufferdata(char *device, struct fb_var_screeninfo *fb_varin
     if (ioctl(fd, FBIOGET_FSCREENINFO, &fb_fixedinfo) != 0)
 	fatal_error("ioctl FBIOGET_FSCREENINFO");
 
-    printf("frame buffer fixed info:\n");
-    printf("id: \"%s\"\n", fb_fixedinfo.id);
-    switch (fb_fixedinfo.type) 
+    if (verbose)
     {
-    case FB_TYPE_PACKED_PIXELS:
-	printf("type: packed pixels\n");
-	break;
-    case FB_TYPE_PLANES:
-	printf("type: non interleaved planes\n");
-	break;
-    case FB_TYPE_INTERLEAVED_PLANES:
-	printf("type: interleaved planes\n");
-	break;
-    case FB_TYPE_TEXT:
-	printf("type: text/attributes\n");
-	break;	
-    case FB_TYPE_VGA_PLANES:
-	printf("type: EGA/VGA planes\n");
-	break;
-    default:
-	printf("type: undefined!\n");
-    }
-    printf("line length: %i bytes (%i pixels)\n", fb_fixedinfo.line_length, fb_fixedinfo.line_length/(fb_varinfo_p->bits_per_pixel/8));
+    	printf("frame buffer fixed info:\n");
+	printf("id: \"%s\"\n", fb_fixedinfo.id);
+    	switch (fb_fixedinfo.type) 
+    	{
+    	case FB_TYPE_PACKED_PIXELS:
+		printf("type: packed pixels\n");
+		break;
+    	case FB_TYPE_PLANES:
+		printf("type: non interleaved planes\n");
+		break;
+    	case FB_TYPE_INTERLEAVED_PLANES:
+		printf("type: interleaved planes\n");
+		break;
+    	case FB_TYPE_TEXT:
+		printf("type: text/attributes\n");
+		break;	
+    	case FB_TYPE_VGA_PLANES:
+		printf("type: EGA/VGA planes\n");
+		break;
+    	default:
+		printf("type: undefined!\n");
+		break;
+    	}
+	printf("line length: %i bytes (%i pixels)\n", fb_fixedinfo.line_length, fb_fixedinfo.line_length/(fb_varinfo_p->bits_per_pixel/8));
     
-    printf("\nframe buffer variable info:\n");
-    printf("resolution: %ix%i\n", fb_varinfo_p->xres, fb_varinfo_p->yres);
-    printf("virtual resolution: %ix%i\n", fb_varinfo_p->xres_virtual, fb_varinfo_p->yres_virtual);
-    printf("offset: %ix%i\n", fb_varinfo_p->xoffset, fb_varinfo_p->yoffset);
-    printf("bits_per_pixel: %i\n", fb_varinfo_p->bits_per_pixel);
-    printf("grayscale: %s\n", fb_varinfo_p->grayscale ? "true" : "false");
-    printf("red:   offset: %i, length: %i, msb_right: %i\n", fb_varinfo_p->red.offset, fb_varinfo_p->red.length, fb_varinfo_p->red.msb_right);
-    printf("blue:  offset: %i, length: %i, msb_right: %i\n", fb_varinfo_p->blue.offset, fb_varinfo_p->green.length, fb_varinfo_p->green.msb_right);
-    printf("green: offset: %i, length: %i, msb_right: %i\n", fb_varinfo_p->green.offset, fb_varinfo_p->blue.length, fb_varinfo_p->blue.msb_right);
-    printf("alpha: offset: %i, length: %i, msb_right: %i\n", fb_varinfo_p->transp.offset, fb_varinfo_p->transp.length, fb_varinfo_p->transp.msb_right);
-    printf("pixel format: %s\n", fb_varinfo_p->nonstd == 0 ? "standard" : "non-standard");
-
+	printf("\nframe buffer variable info:\n");
+	printf("resolution: %ix%i\n", fb_varinfo_p->xres, fb_varinfo_p->yres);
+	printf("virtual resolution: %ix%i\n", fb_varinfo_p->xres_virtual, fb_varinfo_p->yres_virtual);
+    	printf("offset: %ix%i\n", fb_varinfo_p->xoffset, fb_varinfo_p->yoffset);
+    	printf("bits_per_pixel: %i\n", fb_varinfo_p->bits_per_pixel);
+    	printf("grayscale: %s\n", fb_varinfo_p->grayscale ? "true" : "false");
+    	printf("red:   offset: %i, length: %i, msb_right: %i\n", fb_varinfo_p->red.offset, fb_varinfo_p->red.length, fb_varinfo_p->red.msb_right);
+    	printf("blue:  offset: %i, length: %i, msb_right: %i\n", fb_varinfo_p->blue.offset, fb_varinfo_p->green.length, fb_varinfo_p->green.msb_right);
+    	printf("green: offset: %i, length: %i, msb_right: %i\n", fb_varinfo_p->green.offset, fb_varinfo_p->blue.length, fb_varinfo_p->blue.msb_right);
+    	printf("alpha: offset: %i, length: %i, msb_right: %i\n", fb_varinfo_p->transp.offset, fb_varinfo_p->transp.length, fb_varinfo_p->transp.msb_right);
+    	printf("pixel format: %s\n", fb_varinfo_p->nonstd == 0 ? "standard" : "non-standard");
+    }
     Blue = fb_varinfo_p->blue.offset >> 3;
     Green = fb_varinfo_p->green.offset >> 3;
     Red = fb_varinfo_p->red.offset >> 3;
@@ -194,14 +199,14 @@ static void convert1555to32(int width, int height,
     for (i=0; i < (unsigned int) height*width*2; i+=2)
     {
 	/* BLUE  = 0 */
-	outbuffer[(i<<1)+0] = (inbuffer[i+1] & 0x7C) << 1;
+	outbuffer[(i<<1)+Blue] = (inbuffer[i+1] & 0x7C) << 1;
 	/* GREEN = 1 */
-        outbuffer[(i<<1)+1] = (((inbuffer[i+1] & 0x3) << 3) | 
+        outbuffer[(i<<1)+Green] = (((inbuffer[i+1] & 0x3) << 3) | 
 			     ((inbuffer[i] & 0xE0) >> 5)) << 3;
 	/* RED   = 2 */
-	outbuffer[(i<<1)+2] = (inbuffer[i] & 0x1f) << 3;
+	outbuffer[(i<<1)+Red] = (inbuffer[i] & 0x1f) << 3;
 	/* ALPHA = 3 */
-	outbuffer[(i<<1)+3] = '\0'; 
+	outbuffer[(i<<1)+Alpha] = '\0'; 
     }
 }
 
@@ -214,14 +219,14 @@ static void convert565to32(int width, int height,
     for (i=0; i < (unsigned int) height*width*2; i+=2)
     {
 	/* BLUE  = 0 */
-	outbuffer[(i<<1)+0] = (inbuffer[i] & 0x1f) << 3;
+	outbuffer[(i<<1)+Blue] = (inbuffer[i] & 0x1f) << 3;
 	/* GREEN = 1 */
-        outbuffer[(i<<1)+1] = (((inbuffer[i+1] & 0x7) << 3) | 
+        outbuffer[(i<<1)+Green] = (((inbuffer[i+1] & 0x7) << 3) | 
 			     (inbuffer[i] & 0xE0) >> 5) << 2;	
         /* RED   = 2 */
-	outbuffer[(i<<1)+2] = (inbuffer[i+1] & 0xF8);
+	outbuffer[(i<<1)+Red] = (inbuffer[i+1] & 0xF8);
 	/* ALPHA = 3 */
-	outbuffer[(i<<1)+3] = '\0'; 
+	outbuffer[(i<<1)+Alpha] = '\0'; 
     }
 }
 
@@ -234,13 +239,13 @@ static void convert888to32(int width, int height,
     for (i=0; i < (unsigned int) height*width; i++)
     {
 	/* BLUE  = 0 */
-	outbuffer[(i<<2)+0] = inbuffer[i*3+0];
+	outbuffer[(i<<2)+Blue] = inbuffer[i*3+0];
 	/* GREEN = 1 */
-        outbuffer[(i<<2)+1] = inbuffer[i*3+1];
+        outbuffer[(i<<2)+Green] = inbuffer[i*3+1];
 	/* RED   = 2 */
-        outbuffer[(i<<2)+2] = inbuffer[i*3+2];
+        outbuffer[(i<<2)+Red] = inbuffer[i*3+2];
 	/* ALPHA */
-        outbuffer[(i<<2)+3] = '\0';
+        outbuffer[(i<<2)+Alpha] = '\0';
     }
 }
 
@@ -253,13 +258,13 @@ static void convert8888to32(int width, int height,
     for (i=0; i < (unsigned int) height*width; i++)
     {
 	/* BLUE  = 0 */
-	outbuffer[(i<<2)+0] = inbuffer[i*4+Blue];
+	outbuffer[(i<<2)+Blue] = inbuffer[i*4+Blue];
 	/* GREEN = 1 */
-        outbuffer[(i<<2)+1] = inbuffer[i*4+Green];
+        outbuffer[(i<<2)+Green] = inbuffer[i*4+Green];
 	/* RED   = 2 */
-        outbuffer[(i<<2)+2] = inbuffer[i*4+Red];
+        outbuffer[(i<<2)+Red] = inbuffer[i*4+Red];
 	/* ALPHA */
-        outbuffer[(i<<2)+3] = 0xff - inbuffer[i*4+Alpha];
+        outbuffer[(i<<2)+Alpha] = inbuffer[i*4+Alpha];
     }
 }
 
@@ -382,6 +387,7 @@ int main(int argc, char **argv)
     struct fb_var_screeninfo fb_varinfo;
     int waitbfg=0; /* wait before grabbing (for -C )... */
     int interlace = PNG_INTERLACE_NONE;
+    int verbose = 0;
 
     memset(infile, 0, MAX_LEN);
     memset(&fb_varinfo, 0, sizeof(struct fb_var_screeninfo));
@@ -389,7 +395,7 @@ int main(int argc, char **argv)
 
     for(;;)
     {
-	optc=getopt(argc, argv, "f:w:b:gh:iC:c:d:s:?");
+	optc=getopt(argc, argv, "f:w:b:gh:iC:c:d:s:?:v");
 	if (optc==-1)
 	    break;
 	switch (optc) 
@@ -418,6 +424,9 @@ int main(int argc, char **argv)
 	    return 1;
 	case 'i':
 	    interlace = PNG_INTERLACE_ADAM7;
+	    break;
+	case 'v':
+	    verbose = 1;
 	    break;
 	case 's':
 	    (void) sleep((unsigned int) atoi(optarg));
@@ -461,7 +470,7 @@ int main(int argc, char **argv)
 	    }
 	}
 
-	get_framebufferdata(device, &fb_varinfo);
+	get_framebufferdata(device, &fb_varinfo, verbose);
 	
 	if (UNDEFINED == bitdepth)
 	    bitdepth = (int) fb_varinfo.bits_per_pixel;

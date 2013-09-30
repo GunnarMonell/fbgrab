@@ -4,11 +4,9 @@
 ###
 
 fbgrab: fbgrab.c
-#	splint +posixlib fbgrab.c
 	gcc -g -Wall fbgrab.c -lpng -lz -o fbgrab
 
 install:
-#	strip fbgrab
 	install fbgrab /usr/bin/fbgrab
 	install fbgrab.1.man /usr/man/man1/fbgrab.1
 
