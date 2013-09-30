@@ -44,7 +44,7 @@ static int Alpha = 3;
 
 static void usage(char *binary)
 {
-    fprintf(stderr, "Usage:   %s\t[-hi] [-{C|c} vt] [-d dev] [-s n]\n"
+    fprintf(stderr, "Usage:   %s\t[-hi] [-{C|c} vt] [-d dev] [-s n] [-z n]\n"
 	   "\t\t[-f fromfile -w n -h n -b n] filename.png\n", binary);
 }
 
@@ -68,6 +68,7 @@ static void help(char *binary)
     fprintf(stderr, "\t-v    \tverbose, print debug information.\n");
     fprintf(stderr, "\t-w n  \tset width to n pixels, required when reading from file\n"
 	   "\t\tcan be used to force width when reading from framebuffer\n");
+    fprintf(stderr, "\t-z n  \tPNG compression level: 0 (fast) .. 9 (best)\n");
     fprintf(stderr, "\t-?    \tprint this usage information\n");
 }
 
@@ -270,7 +271,7 @@ static void convert8888to32(int width, int height,
 
 
 static void write_PNG(unsigned char *outbuffer, char *filename, 
-				int width, int height, int interlace)
+				int width, int height, int interlace, int compression)
 {
     int i;
     int bit_depth=0, color_type;
@@ -322,7 +323,7 @@ static void write_PNG(unsigned char *outbuffer, char *filename,
     
     png_write_info(png_ptr, info_ptr);
     
-    fprintf(stderr, "Now writing PNG file\n");
+    fprintf(stderr, "Now writing PNG file (compression %d)\n", compression);
     
     png_write_image(png_ptr, row_pointers);
     
@@ -336,7 +337,7 @@ static void write_PNG(unsigned char *outbuffer, char *filename,
 		  released memory of png_ptr and info_ptr */
 
 static void convert_and_write(unsigned char *inbuffer, char *filename, 
-				int width, int height, int bits, int interlace)
+				int width, int height, int bits, int interlace, int compression)
 {
     size_t bufsize = (size_t) width * height * 4;
 
@@ -353,19 +354,19 @@ static void convert_and_write(unsigned char *inbuffer, char *filename,
     {
     case 15:
 	convert1555to32(width, height, inbuffer, outbuffer);
-	write_PNG(outbuffer, filename, width, height, interlace);
+	write_PNG(outbuffer, filename, width, height, interlace, compression);
 	break;
     case 16:
 	convert565to32(width, height, inbuffer, outbuffer);
-	write_PNG(outbuffer, filename, width, height, interlace);
+	write_PNG(outbuffer, filename, width, height, interlace, compression);
 	break;
     case 24:
 	convert888to32(width, height, inbuffer, outbuffer);
-	write_PNG(outbuffer, filename, width, height, interlace);
+	write_PNG(outbuffer, filename, width, height, interlace, compression);
 	break;
     case 32:
 	convert8888to32(width, height, inbuffer, outbuffer);
-	write_PNG(outbuffer, filename, width, height, interlace);
+	write_PNG(outbuffer, filename, width, height, interlace, compression);
 	break;
     default:
 	fprintf(stderr, "%d bits per pixel are not supported! ", bits);
@@ -394,6 +395,7 @@ int main(int argc, char **argv)
     int waitbfg=0; /* wait before grabbing (for -C )... */
     int interlace = PNG_INTERLACE_NONE;
     int verbose = 0;
+    int png_compression = Z_DEFAULT_COMPRESSION;
 
     memset(infile, 0, MAX_LEN);
     memset(&fb_varinfo, 0, sizeof(struct fb_var_screeninfo));
@@ -401,7 +403,7 @@ int main(int argc, char **argv)
 
     for(;;)
     {
-	optc=getopt(argc, argv, "f:w:b:gh:iC:c:d:s:?:v");
+	optc=getopt(argc, argv, "f:z:w:b:gh:iC:c:d:s:?:v");
 	if (optc==-1)
 	    break;
 	switch (optc) 
@@ -440,6 +442,9 @@ int main(int argc, char **argv)
 	case 'w':
 	    width = atoi(optarg);
 	    break;    
+	case 'z':
+	    png_compression = atoi(optarg);
+	    break;
 	default:
 	    usage(argv[0]);
 	}
@@ -506,7 +511,7 @@ int main(int argc, char **argv)
     if (UNDEFINED != old_vt)
 	(void) change_to_vt((unsigned short int) old_vt);
 
-    convert_and_write(buf_p, outfile, width, height, bitdepth, interlace);
+    convert_and_write(buf_p, outfile, width, height, bitdepth, interlace, png_compression);
    
     (void) free(buf_p);
 
