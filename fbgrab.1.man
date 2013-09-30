@@ -1,4 +1,4 @@
-.TH fbgrab 1 "(C) 2002 Gunnar Monell, GPL"
+.TH fbgrab 1 "(C) 2002 - 2013 Gunnar Monell, GPL"
 .SH NAME
 \fBfbgrab\fP - takes screenshots using the framebuffer device
 .SH SYNOPSIS
@@ -52,6 +52,9 @@ be verbose
 .TP
 .B -w width
 the width of the frambeuffer in pixels, optional when reading from device.
+.TP
+.B -z 
+set png compression level 0 (fast) to 9 (best).
 
 .SH TODO
 * Low-end bit depths, eg 1, 2, 4 & 8 bits.
