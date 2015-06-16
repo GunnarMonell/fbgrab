@@ -19,7 +19,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
-
+#include <string.h>
 #include <getopt.h>
 #include <sys/vt.h>   /* to handle vt changing */
 #include <png.h>      /* PNG lib */
@@ -31,10 +31,15 @@
 #define MAX_LEN 512
 #define UNDEFINED -1
 
-static int Blue = 0;
-static int Green = 1;
-static int Red = 2;
-static int Alpha = 3;
+static int srcBlue = 0;
+static int srcGreen = 1;
+static int srcRed = 2;
+static int srcAlpha = 3;
+
+static const int Blue = 0;
+static const int Green = 1;
+static const int Red = 2;
+static const int Alpha = 3;
 
 /*@noreturn@*/ static void fatal_error(char *message)
 {
@@ -169,15 +174,20 @@ static void get_framebufferdata(char *device, struct fb_var_screeninfo *fb_varin
         fprintf(stderr, "alpha: offset: %i, length: %i, msb_right: %i\n", fb_varinfo_p->transp.offset, fb_varinfo_p->transp.length, fb_varinfo_p->transp.msb_right);
         fprintf(stderr, "pixel format: %s\n", fb_varinfo_p->nonstd == 0 ? "standard" : "non-standard");
     }
-    Blue = fb_varinfo_p->blue.offset >> 3;
-    Green = fb_varinfo_p->green.offset >> 3;
-    Red = fb_varinfo_p->red.offset >> 3;
-    Alpha = fb_varinfo_p->transp.offset >> 3;
+    srcBlue = fb_varinfo_p->blue.offset >> 3;
+    srcGreen = fb_varinfo_p->green.offset >> 3;
+    srcRed = fb_varinfo_p->red.offset >> 3;
+
+    if (fb_varinfo_p->transp.length > 0) {
+	srcAlpha = fb_varinfo_p->transp.offset >> 3;
+    } else {
+	srcAlpha = -1; // not used
+    }
 
     (void) close(fd);
 }
 
-static void read_framebuffer(char *device, size_t bytes, unsigned char *buf_p)
+static void read_framebuffer(char *device, size_t bytes, unsigned char *buf_p, int skip_bytes)
 {
     int fd; 
 
@@ -185,6 +195,10 @@ static void read_framebuffer(char *device, size_t bytes, unsigned char *buf_p)
     {
 	fprintf(stderr, "Error: Couldn't open %s.\n", device);
 	exit(EXIT_FAILURE);
+    }
+
+    if (skip_bytes) {
+        lseek(fd, skip_bytes, SEEK_SET);
     }
 
     if (buf_p == NULL || read(fd, buf_p, bytes) != (ssize_t) bytes) 
@@ -240,11 +254,11 @@ static void convert888to32(int width, int height,
     for (i=0; i < (unsigned int) height*width; i++)
     {
 	/* BLUE  = 0 */
-	outbuffer[(i<<2)+Blue] = inbuffer[i*3+0];
+	outbuffer[(i<<2)+Blue] = inbuffer[i*3+srcBlue];
 	/* GREEN = 1 */
-        outbuffer[(i<<2)+Green] = inbuffer[i*3+1];
+        outbuffer[(i<<2)+Green] = inbuffer[i*3+srcGreen];
 	/* RED   = 2 */
-        outbuffer[(i<<2)+Red] = inbuffer[i*3+2];
+        outbuffer[(i<<2)+Red] = inbuffer[i*3+srcRed];
 	/* ALPHA */
         outbuffer[(i<<2)+Alpha] = '\0';
     }
@@ -259,13 +273,13 @@ static void convert8888to32(int width, int height,
     for (i=0; i < (unsigned int) height*width; i++)
     {
 	/* BLUE  = 0 */
-	outbuffer[(i<<2)+Blue] = inbuffer[i*4+Blue];
+	outbuffer[(i<<2)+Blue] = inbuffer[i*4+srcBlue];
 	/* GREEN = 1 */
-        outbuffer[(i<<2)+Green] = inbuffer[i*4+Green];
+        outbuffer[(i<<2)+Green] = inbuffer[i*4+srcGreen];
 	/* RED   = 2 */
-        outbuffer[(i<<2)+Red] = inbuffer[i*4+Red];
+        outbuffer[(i<<2)+Red] = inbuffer[i*4+srcRed];
 	/* ALPHA */
-        outbuffer[(i<<2)+Alpha] = inbuffer[i*4+Alpha];
+        outbuffer[(i<<2)+Alpha] = srcAlpha >= 0 ? inbuffer[i*4+srcAlpha] : 0xff;
     }
 }
 
@@ -396,6 +410,7 @@ int main(int argc, char **argv)
     int interlace = PNG_INTERLACE_NONE;
     int verbose = 0;
     int png_compression = Z_DEFAULT_COMPRESSION;
+    int skip_bytes = 0;
 
     memset(infile, 0, MAX_LEN);
     memset(&fb_varinfo, 0, sizeof(struct fb_var_screeninfo));
@@ -492,6 +507,8 @@ int main(int argc, char **argv)
 	if (UNDEFINED == height)
 	    height = (int) fb_varinfo.yres;
 
+	skip_bytes =  (fb_varinfo.yoffset * fb_varinfo.xres) * (fb_varinfo.bits_per_pixel >> 3);
+
 	fprintf(stderr, "Resolution: %ix%i depth %i\n", width, height, bitdepth);
 
 	strncpy(infile, device, MAX_LEN - 1);
@@ -506,7 +523,7 @@ int main(int argc, char **argv)
 
     memset(buf_p, 0, buf_size);
 
-    read_framebuffer(infile, buf_size, buf_p);
+    read_framebuffer(infile, buf_size, buf_p, skip_bytes);
 
     if (UNDEFINED != old_vt)
 	(void) change_to_vt((unsigned short int) old_vt);

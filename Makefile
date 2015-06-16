@@ -19,7 +19,7 @@ fbgrab.1.gz: fbgrab.1.man
 
 install: fbgrab fbgrab.1.gz
 	install -D -m 0755 fbgrab $(DESTDIR)/usr/bin/fbgrab
-	install -D -m 0644 fbgrab.1.gz $(DESTDIR)/usr/man/man1/fbgrab.1.gz
+	install -D -m 0644 fbgrab.1.gz $(DESTDIR)/usr/share/man/man1/fbgrab.1.gz
 
 clean:
 	-$(RM) fbgrab fbgrab.1.gz *~ \#*\#
