@@ -1,4 +1,4 @@
-.TH fbgrab 1 "(C) 2002 - 2013 Gunnar Monell, GPL"
+.TH fbgrab 1 "(C) 2002 - 2020 Gunnar Monell, GPL"
 .SH NAME
 \fBfbgrab\fP - takes screenshots using the framebuffer device
 .SH SYNOPSIS
@@ -79,12 +79,12 @@ fbgrab -w 1024 -h 768 -b 16 -f framebuffer.dump fb.png
 to convert it to a picture.
 
 .SH AUTHOR
-Written by Gunnar Monell <gmo@linux.nu>.
+Written by Gunnar Monell <gunnar.monell@gmail.com>.
 Basically a rewrite of fbshot by Stephan Beyer <fbshot@s-beyer.de>
 
 .SH COPYRIGHT (C) 
 .P
-(C) 2002-2013 Gunnar Monell <gmo@linux.nu>
+(C) 2002-2020 Gunnar Monell <gunnar.monell@gmail.com>
 .P 
 (C) 2000 Stephan Beyer <fbshot@s-beyer.de>
 .P

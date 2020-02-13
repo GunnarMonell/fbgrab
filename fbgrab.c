@@ -279,7 +279,7 @@ static void convert8888to32(int width, int height,
 	/* RED   = 2 */
         outbuffer[(i<<2)+Red] = inbuffer[i*4+srcRed];
 	/* ALPHA */
-        outbuffer[(i<<2)+Alpha] = srcAlpha >= 0 ? inbuffer[i*4+srcAlpha] : 0xff;
+        outbuffer[(i<<2)+Alpha] = srcAlpha >= 0 ? inbuffer[i*4+srcAlpha] : 0;
     }
 }
 
