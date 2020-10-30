@@ -46,6 +46,11 @@ FBGrab is a framebuffer screenshot program, capturing the linux frambuffer and c
        -i     turns off interlacing. If you do not want ADAM7 interlacing, you
               should use the -i option.
 
+       -l line length, a.k.a. stride.
+              the length  in  pixels  between  the  start  of  each row in the
+              framebuffer, which might be larger or equal  to  width. Optional
+              when reading from device.
+
        -s seconds
               specifies how many seconds to wait before grabbing. fbshot  does
               not  lock console switching, so you can switch it while waiting,
@@ -88,18 +93,36 @@ FBGrab is a framebuffer screenshot program, capturing the linux frambuffer and c
 
 # Releasenotes
 
-# New February 12 2020
+## New October 30, 2020. Version 1.4
+   Stride support.
+
+   I. e. support for automatic detection and grab from framebuffers where
+   line length differs from resolution.
+
+   Thanks to Frank Bauernoeppel.
+
+## New April 20, 2020, Version 1.3.3.
+    Fix pixel format report
+
+    When fbgrab tells about the framebuffer pixel format, blue and green
+    are accidentally swapped in 'length' and 'msb_right' columns. Let's
+    order everything as RGB.
+
+    Thanks to Timo Ketola.
 
 
+## New February 12, 2020
 
-New June 16, 2015: Version 1.3 released!
+ * Hosted on github
 
-## News: Long overdue fixes finally released:
+## New June 16, 2015: Version 1.3 released!
+
+### News: Long overdue fixes finally released:
 
  * Added support when active framebuffer is not starting at offset 0
  * Fixed broken re-ordering of colors, rgba to argb
  * Fixed broken path for man page
- * Thanks to Peter Meerwald, David Hill and Konstantinn Bonnet who provided patches 
+ * Thanks to Peter Meerwald, David Hill and Konstantinn Bonnet who provided patches
 
 ## New September 30, 2013: Version 1.2 released!
 
@@ -107,7 +130,7 @@ New June 16, 2015: Version 1.3 released!
  * Write png file directly to stdout
  * Set png compression level with -z
  * Several improvements of Makefile for package maintainers and cross compiliation.
- * Thanks to Peter Meerwald and Bartlomiej Palmowski who provided good patches! 
+ * Thanks to Peter Meerwald and Bartlomiej Palmowski who provided good patches!
 
 ## New May 2013: Version 1.1 released!
 
