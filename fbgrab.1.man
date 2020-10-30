@@ -18,42 +18,45 @@ print usage information.
 the number of bits per pixel used, optional when reading from device.
 .TP
 .B -c console
-specifies which \fBconsole\fP (or virtual terminal - like other 
-people call this feature) to grab. Sometimes this changing is 
+specifies which \fBconsole\fP (or virtual terminal - like other
+people call this feature) to grab. Sometimes this changing is
 faster then the framebuffer is refreshed (especially when grabbing
 framebuffer apps). If so, you should \fBuse -C console\fP ... This
 waits some time before grabbing. You can't use \fB-s\fP in this case.
 .TP
 .B -d device
-specifies which framebuffer device you want to read. If 
-you do not use this option, it takes the value from the 
-\fBFRAMEBUFFER\fP environment variable. If no FRAMEBUFFER 
+specifies which framebuffer device you want to read. If
+you do not use this option, it takes the value from the
+\fBFRAMEBUFFER\fP environment variable. If no FRAMEBUFFER
 environment variable is given or if its value is \fBNULL\fP, then
 DEFAULT_FB is taken. (see source code), which usually is /dev/fb0.
 .TP
 .B -f filename
 Read from from file instead of device, requires that -w (width), -h (height) and
--b (bitdepth) are specified. 
+-b (bitdepth) are specified.
 .TP
 .B -h height
-the height of the frambeuffer in pixels, optional when reading from device.
+the height of the framebuffer in pixels, optional when reading from device.
 .TP
-.B -i 
-turns \fBoff\fP interlacing. If you do not want \fBADAM7 interlacing\fP, 
+.B -i interlacing
+turns \fBoff\fP interlacing. If you do not want \fBADAM7 interlacing\fP,
 you should use the \fB-i\fP option.
+.TP
+.B -l line length, a.k.a. stride.
+the length in pixels between the start of each row in the framebuffer, which might be larger or equal to width. Optional when reading from device.
 .TP
 .B -s seconds
 specifies how many seconds to wait before grabbing. \fBfbshot\fP
-does not lock console switching, so you can switch it while 
+does not lock console switching, so you can switch it while
 waiting, if you cannot use -c requires normally that fbgrab is run as root.
 .TP
-.B -v verbose 
-be verbose 
+.B -v verbose
+be verbose
 .TP
 .B -w width
 the width of the frambeuffer in pixels, optional when reading from device.
 .TP
-.B -z 
+.B -z compression level
 set png compression level 0 (fast) to 9 (best).
 
 .SH TODO
@@ -72,9 +75,9 @@ will take a framebuffer snapshot, or if you don't have fbgrab at your machine, y
 .P
 cp /dev/fb0 framebuffer.dump
 .P
-and then 
-.P	
-fbgrab -w 1024 -h 768 -b 16 -f framebuffer.dump fb.png
+and then
+.P
+fbgrab -w 1024 -h 768 -l 2048 -b 16 -f framebuffer.dump fb.png
 .P
 to convert it to a picture.
 
@@ -82,10 +85,10 @@ to convert it to a picture.
 Written by Gunnar Monell <gunnar.monell@gmail.com>.
 Basically a rewrite of fbshot by Stephan Beyer <fbshot@s-beyer.de>
 
-.SH COPYRIGHT (C) 
+.SH COPYRIGHT (C)
 .P
 (C) 2002-2020 Gunnar Monell <gunnar.monell@gmail.com>
-.P 
+.P
 (C) 2000 Stephan Beyer <fbshot@s-beyer.de>
 .P
 This program is free software; you can redistribute it and/or modify
