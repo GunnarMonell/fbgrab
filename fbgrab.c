@@ -236,18 +236,19 @@ static void convert565to32(int width, int height,
     unsigned int row;
     unsigned int col;
     for (row=0; row < height; row++)
-    for (col=0; col < (unsigned int) width*2; col+=2)
+    for (col=0; col < (unsigned int) width; col++)
     {
-        int pixel = row * line_length + col;
-	/* BLUE  = 0 */
-	    outbuffer[(pixel<<1)+Blue] = (inbuffer[pixel] & 0x1f) << 3;
-	/* GREEN = 1 */
-        outbuffer[(pixel<<1)+Green] = (((inbuffer[pixel+1] & 0x7) << 3) | 
-			     (inbuffer[pixel] & 0xE0) >> 5) << 2;	
-    /* RED   = 2 */
-	    outbuffer[(pixel<<1)+Red] = (inbuffer[pixel+1] & 0xF8);
-	/* ALPHA = 3 */
-	    outbuffer[(pixel<<1)+Alpha] = '\0'; 
+        int srcidx = 2 * (row * line_length + col);
+        int dstidx = 4 * (row * width + col);
+        /* BLUE  = 0 */
+        outbuffer[dstidx+Blue] = (inbuffer[srcidx] & 0x1f) << 3;
+        /* GREEN = 1 */
+        outbuffer[dstidx+Green] = (((inbuffer[srcidx+1] & 0x7) << 3) |
+                                (inbuffer[srcidx] & 0xE0) >> 5) << 2;
+        /* RED   = 2 */
+        outbuffer[dstidx+Red] = (inbuffer[srcidx+1] & 0xF8);
+        /* ALPHA = 3 */
+        outbuffer[dstidx+Alpha] = '\0';
     }
 }
 
@@ -534,7 +535,7 @@ int main(int argc, char **argv)
             strncpy(infile, device, MAX_LEN - 1);
     }
         
-    buf_size = width * height * (((unsigned int) bitdepth + 7) >> 3);
+    buf_size = line_length * height * (((unsigned int) bitdepth + 7) >> 3);
 
     buf_p = (unsigned char*) malloc(buf_size);
     
