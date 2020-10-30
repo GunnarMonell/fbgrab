@@ -213,18 +213,19 @@ static void convert1555to32(int width, int height,
     unsigned int row;
     unsigned int col;
     for (row=0; row < height; row++)
-    for (col=0; col < (unsigned int) width*2; col+=2)
+    for (col=0; col < (unsigned int) width; col++)
     {
-        int pixel = row * line_length + col;
+        int srcidx = 2 * (row * line_length + col);
+        int dstidx = 4 * (row * width + col);
 	/* BLUE  = 0 */
-	    outbuffer[(pixel<<1)+Blue] = (inbuffer[pixel+1] & 0x7C) << 1;
+	    outbuffer[dstidx+Blue] = (inbuffer[srcidx+1] & 0x7C) << 1;
 	/* GREEN = 1 */
-        outbuffer[(pixel<<1)+Green] = (((inbuffer[pixel+1] & 0x3) << 3) | 
-			     ((inbuffer[pixel] & 0xE0) >> 5)) << 3;
+        outbuffer[dstidx+Green] = (((inbuffer[srcidx+1] & 0x3) << 3) | 
+			     ((inbuffer[srcidx] & 0xE0) >> 5)) << 3;
 	/* RED   = 2 */
-	    outbuffer[(pixel<<1)+Red] = (inbuffer[pixel] & 0x1f) << 3;
+	    outbuffer[dstidx+Red] = (inbuffer[srcidx] & 0x1f) << 3;
 	/* ALPHA = 3 */
-	    outbuffer[(pixel<<1)+Alpha] = '\0'; 
+	    outbuffer[dstidx+Alpha] = '\0'; 
     }
 }
 
@@ -262,15 +263,16 @@ static void convert888to32(int width, int height,
     for (row=0; row<height; row++)
     for (col=0; col < (unsigned int) width; col++)
     {
-        int pixel = row * line_length + col;
-	/* BLUE  = 0 */
-	    outbuffer[(pixel<<2)+Blue] = inbuffer[pixel*3+srcBlue];
+        int srcidx = 3 * (row * line_length + col);
+        int dstidx = 4 * (row * width + col);
+    /* BLUE  = 0 */
+	    outbuffer[dstidx+Blue] = inbuffer[srcidx+srcBlue];
 	/* GREEN = 1 */
-        outbuffer[(pixel<<2)+Green] = inbuffer[pixel*3+srcGreen];
+        outbuffer[dstidx+Green] = inbuffer[srcidx+srcGreen];
 	/* RED   = 2 */
-        outbuffer[(pixel<<2)+Red] = inbuffer[pixel*3+srcRed];
+        outbuffer[dstidx+Red] = inbuffer[srcidx+srcRed];
 	/* ALPHA */
-        outbuffer[(pixel<<2)+Alpha] = '\0';
+        outbuffer[dstidx+Alpha] = '\0';
     }
 }
 
@@ -284,15 +286,16 @@ static void convert8888to32(int width, int height,
     for (row=0; row<height; row++)
     for (col=0; col < (unsigned int) width; col++)
     {
-        int pixel = row * line_length + col;
+        int srcidx = 4 * (row * line_length + col);
+        int dstidx = 4 * (row * width + col);
 	/* BLUE  = 0 */
-    	outbuffer[(pixel<<2)+Blue] = inbuffer[pixel*4+srcBlue];
+    	outbuffer[dstidx+Blue] = inbuffer[srcidx+srcBlue];
 	/* GREEN = 1 */
-        outbuffer[(pixel<<2)+Green] = inbuffer[pixel*4+srcGreen];
+        outbuffer[dstidx+Green] = inbuffer[srcidx+srcGreen];
 	/* RED   = 2 */
-        outbuffer[(pixel<<2)+Red] = inbuffer[pixel*4+srcRed];
+        outbuffer[dstidx+Red] = inbuffer[srcidx+srcRed];
 	/* ALPHA */
-        outbuffer[(pixel<<2)+Alpha] = srcAlpha >= 0 ? inbuffer[pixel*4+srcAlpha] : 0;
+        outbuffer[dstidx+Alpha] = srcAlpha >= 0 ? inbuffer[srcidx+srcAlpha] : 0;
     }
 }
 
@@ -528,11 +531,11 @@ int main(int argc, char **argv)
         if (UNDEFINED == line_length)
             line_length = (int) fb_fixedinfo.line_length/(fb_varinfo.bits_per_pixel>>3);
 
-            skip_bytes =  (fb_varinfo.yoffset * fb_varinfo.xres) * (fb_varinfo.bits_per_pixel >> 3);
+        skip_bytes =  (fb_varinfo.yoffset * fb_varinfo.xres) * (fb_varinfo.bits_per_pixel >> 3);
 
-            fprintf(stderr, "Resolution: %ix%i depth %i\n", width, height, bitdepth);
+        fprintf(stderr, "Resolution: %ix%i depth %i\n", width, height, bitdepth);
 
-            strncpy(infile, device, MAX_LEN - 1);
+        strncpy(infile, device, MAX_LEN - 1);
     }
         
     buf_size = line_length * height * (((unsigned int) bitdepth + 7) >> 3);
