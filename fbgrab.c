@@ -61,6 +61,7 @@ static void help(char *binary)
 
     fprintf(stderr, "\nPossible options:\n");
 /* please keep this list alphabetical */
+    fprintf(stderr, "\t-a    \tignore the alpha channel, to support pixel formats like BGR32\n");
     fprintf(stderr, "\t-b n  \tforce use of n bits/pixel, required when reading from file\n");
     fprintf(stderr, "\t-C n  \tgrab from console n, for slower framebuffers\n");
     fprintf(stderr, "\t-c n  \tgrab from console n\n");
@@ -177,12 +178,6 @@ static void get_framebufferdata(char *device, struct fb_var_screeninfo *fb_varin
     srcBlue = fb_varinfo_p->blue.offset >> 3;
     srcGreen = fb_varinfo_p->green.offset >> 3;
     srcRed = fb_varinfo_p->red.offset >> 3;
-
-    if (fb_varinfo_p->transp.length > 0) {
-	srcAlpha = fb_varinfo_p->transp.offset >> 3;
-    } else {
-	srcAlpha = -1; // not used
-    }
 
     (void) close(fd);
 }
@@ -417,7 +412,7 @@ int main(int argc, char **argv)
     char *device = NULL;
     char *outfile = argv[argc-1];
     int optc;
-    int vt_num=UNDEFINED, bitdepth=UNDEFINED, height=UNDEFINED, width=UNDEFINED;
+    int ignore_alpha=UNDEFINED, vt_num=UNDEFINED, bitdepth=UNDEFINED, height=UNDEFINED, width=UNDEFINED;
     int old_vt=UNDEFINED;
     int line_length = UNDEFINED;
     size_t buf_size;
@@ -442,6 +437,9 @@ int main(int argc, char **argv)
 	switch (optc)
 	{
 /* please keep this list alphabetical */
+	case 'a':
+	    ignore_alpha = 1;
+	    break;
 	case 'b':
 	    bitdepth = atoi(optarg);
 	    break;
@@ -518,6 +516,12 @@ int main(int argc, char **argv)
     	}
 
         get_framebufferdata(device, &fb_varinfo, &fb_fixedinfo, verbose);
+
+        if ((UNDEFINED == ignore_alpha) && (fb_varinfo.transp.length > 0)) {
+            srcAlpha = fb_varinfo.transp.offset >> 3;
+        } else {
+            srcAlpha = -1; // not used
+        }
 
         if (UNDEFINED == bitdepth)
             bitdepth = (int) fb_varinfo.bits_per_pixel;

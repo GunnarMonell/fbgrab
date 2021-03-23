@@ -17,6 +17,8 @@ FBGrab is a framebuffer screenshot program, capturing the linux frambuffer and c
 ## OPTIONS
        -?     print usage information.
 
+       -a     ignore the alpha channel, to support pixel formats like BGR32.
+
        -b bitdepth
               the number of bits per pixel used, optional  when  reading  from
               device.
