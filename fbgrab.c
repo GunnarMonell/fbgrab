@@ -431,7 +431,7 @@ int main(int argc, char **argv)
 
     for(;;)
     {
-	optc=getopt(argc, argv, "f:z:w:b:h:l:iC:c:d:s:?v");
+	optc=getopt(argc, argv, "f:z:w:b:h:l:iC:c:d:s:?av");
 	if (optc==-1)
 	    break;
 	switch (optc)
