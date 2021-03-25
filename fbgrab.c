@@ -26,7 +26,7 @@
 #include <zlib.h>
 #include <linux/fb.h> /* to handle framebuffer ioctls */
 
-#define	VERSION	"1.4"
+#define	VERSION	"1.5"
 #define	DEFAULT_FB	"/dev/fb0"
 #define MAX_LEN 512
 #define UNDEFINED -1
