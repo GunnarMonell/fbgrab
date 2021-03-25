@@ -1,7 +1,7 @@
 /*
  * fbgrab - takes screenshots using the framebuffer.
  *
- * (C) Gunnar Monell <gmo@linux.nu> 2002-2020
+ * (C) Gunnar Monell <gunnar.monell@gmail.com> 2002-2021
  *
  * This program is free Software, see the COPYING file
  * and is based on Stephan Beyer's <fbshot@s-beyer.de> FBShot
