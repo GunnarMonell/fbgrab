@@ -95,6 +95,11 @@ FBGrab is a framebuffer screenshot program, capturing the linux frambuffer and c
 
 # Releasenotes
 
+## New October 25, 2020. Version 1.5
+   New in this release is the option to ignore the values in an by the driver incorrectly set alpha channel.
+
+   Thanks to @mrtims for providing the patch.
+
 ## New October 30, 2020. Version 1.4
    Stride support.
 
