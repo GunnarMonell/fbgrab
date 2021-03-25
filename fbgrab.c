@@ -22,8 +22,19 @@
 #include <string.h>
 #include <getopt.h>
 #include <sys/vt.h>   /* to handle vt changing */
-#include <png.h>      /* PNG lib */
+#ifdef S_SPLINT_S
+#define Z_BEST_COMPRESSION 1
+#define Z_DEFAULT_COMPRESSION 0
+#define png_int_32 int
+#define png_byte char
+#define png_uint_32 unsigned
+#define png_int_16 short
+#define png_uint_16 unsigned
+#define __signed__ signed
+#else
 #include <zlib.h>
+#endif
+#include <png.h>      /* PNG lib */
 #include <linux/fb.h> /* to handle framebuffer ioctls */
 
 #define	VERSION	"1.5"
@@ -36,10 +47,10 @@ static int srcGreen = 1;
 static int srcRed = 2;
 static int srcAlpha = 3;
 
-static const int Blue = 0;
-static const int Green = 1;
-static const int Red = 2;
-static const int Alpha = 3;
+static const __u32 Blue = 0;
+static const __u32 Green = 1;
+static const __u32 Red = 2;
+static const __u32 Alpha = 3;
 
 /*@noreturn@*/ static void fatal_error(char *message)
 {
@@ -136,7 +147,7 @@ static void get_framebufferdata(char *device, struct fb_var_screeninfo *fb_varin
     if (ioctl(fd, FBIOGET_FSCREENINFO, fb_fixedinfo) != 0)
 	fatal_error("ioctl FBIOGET_FSCREENINFO");
 
-    if (verbose)
+    if (0!=verbose)
     {
         fprintf(stderr, "frame buffer fixed info:\n");
         fprintf(stderr, "id: \"%s\"\n", fb_fixedinfo->id);
@@ -161,23 +172,23 @@ static void get_framebufferdata(char *device, struct fb_var_screeninfo *fb_varin
     		fprintf(stderr, "type: undefined!\n");
 	    	break;
     	}
-        fprintf(stderr, "line length: %i bytes (%i pixels)\n", fb_fixedinfo->line_length, fb_fixedinfo->line_length/(fb_varinfo_p->bits_per_pixel/8));
+        fprintf(stderr, "line length: %i bytes (%i pixels)\n", (int) fb_fixedinfo->line_length, (int) fb_fixedinfo->line_length/(fb_varinfo_p->bits_per_pixel/8));
 
         fprintf(stderr, "\nframe buffer variable info:\n");
-        fprintf(stderr, "resolution: %ix%i\n", fb_varinfo_p->xres, fb_varinfo_p->yres);
-        fprintf(stderr, "virtual resolution: %ix%i\n", fb_varinfo_p->xres_virtual, fb_varinfo_p->yres_virtual);
-        fprintf(stderr, "offset: %ix%i\n", fb_varinfo_p->xoffset, fb_varinfo_p->yoffset);
-        fprintf(stderr, "bits_per_pixel: %i\n", fb_varinfo_p->bits_per_pixel);
-        fprintf(stderr, "grayscale: %s\n", fb_varinfo_p->grayscale ? "true" : "false");
-        fprintf(stderr, "red:   offset: %i, length: %i, msb_right: %i\n", fb_varinfo_p->red.offset, fb_varinfo_p->red.length, fb_varinfo_p->red.msb_right);
-        fprintf(stderr, "green: offset: %i, length: %i, msb_right: %i\n", fb_varinfo_p->green.offset, fb_varinfo_p->green.length, fb_varinfo_p->green.msb_right);
-        fprintf(stderr, "blue:  offset: %i, length: %i, msb_right: %i\n", fb_varinfo_p->blue.offset, fb_varinfo_p->blue.length, fb_varinfo_p->blue.msb_right);
-        fprintf(stderr, "alpha: offset: %i, length: %i, msb_right: %i\n", fb_varinfo_p->transp.offset, fb_varinfo_p->transp.length, fb_varinfo_p->transp.msb_right);
+        fprintf(stderr, "resolution: %ix%i\n", (int) fb_varinfo_p->xres, (int) fb_varinfo_p->yres);
+        fprintf(stderr, "virtual resolution: %ix%i\n", (int) fb_varinfo_p->xres_virtual, (int) fb_varinfo_p->yres_virtual);
+        fprintf(stderr, "offset: %ix%i\n", (int) fb_varinfo_p->xoffset, (int) fb_varinfo_p->yoffset);
+        fprintf(stderr, "bits_per_pixel: %i\n", (int) fb_varinfo_p->bits_per_pixel);
+        fprintf(stderr, "grayscale: %s\n", fb_varinfo_p->grayscale!=0 ? "true" : "false");
+        fprintf(stderr, "red:   offset: %i, length: %i, msb_right: %i\n", (int) fb_varinfo_p->red.offset, (int) fb_varinfo_p->red.length, (int) fb_varinfo_p->red.msb_right);
+        fprintf(stderr, "green: offset: %i, length: %i, msb_right: %i\n", (int) fb_varinfo_p->green.offset, (int) fb_varinfo_p->green.length, (int) fb_varinfo_p->green.msb_right);
+        fprintf(stderr, "blue:  offset: %i, length: %i, msb_right: %i\n", (int) fb_varinfo_p->blue.offset, (int) fb_varinfo_p->blue.length, (int) fb_varinfo_p->blue.msb_right);
+        fprintf(stderr, "alpha: offset: %i, length: %i, msb_right: %i\n", (int) fb_varinfo_p->transp.offset, (int) fb_varinfo_p->transp.length, (int) fb_varinfo_p->transp.msb_right);
         fprintf(stderr, "pixel format: %s\n", fb_varinfo_p->nonstd == 0 ? "standard" : "non-standard");
     }
-    srcBlue = fb_varinfo_p->blue.offset >> 3;
-    srcGreen = fb_varinfo_p->green.offset >> 3;
-    srcRed = fb_varinfo_p->red.offset >> 3;
+    srcBlue = (int) (fb_varinfo_p->blue.offset >> 3);
+    srcGreen = (int) (fb_varinfo_p->green.offset >> 3);
+    srcRed = (int) (fb_varinfo_p->red.offset >> 3);
 
     (void) close(fd);
 }
@@ -192,15 +203,16 @@ static void read_framebuffer(char *device, size_t bytes, unsigned char *buf_p, i
 	exit(EXIT_FAILURE);
     }
 
-    if (skip_bytes) {
-        lseek(fd, skip_bytes, SEEK_SET);
+    if (skip_bytes!=0) {
+        if (-1 == lseek(fd, skip_bytes, SEEK_SET))
+    	    fatal_error("Error: Could not seek to framebuffer start position.\n");
     }
 
     if (buf_p == NULL || read(fd, buf_p, bytes) != (ssize_t) bytes)
-	fatal_error("Error: Not enough memory or data\n");
+	    fatal_error("Error: Not enough memory or data\n");
 }
 
-static void convert1555to32(int width, int height,
+static void convert1555to32(unsigned int width, unsigned int height,
                 int line_length,
 			    unsigned char *inbuffer,
 			    unsigned char *outbuffer)
@@ -210,8 +222,8 @@ static void convert1555to32(int width, int height,
     for (row=0; row < height; row++)
     for (col=0; col < (unsigned int) width; col++)
     {
-        int srcidx = 2 * (row * line_length + col);
-        int dstidx = 4 * (row * width + col);
+        unsigned int srcidx = 2 * (row * line_length + col);
+        unsigned int dstidx = 4 * (row * width + col);
 	/* BLUE  = 0 */
 	    outbuffer[dstidx+Blue] = (inbuffer[srcidx+1] & 0x7C) << 1;
 	/* GREEN = 1 */
@@ -224,7 +236,7 @@ static void convert1555to32(int width, int height,
     }
 }
 
-static void convert565to32(int width, int height,
+static void convert565to32(unsigned int width, unsigned int height,
                 int line_length,
 		        unsigned char *inbuffer,
 			    unsigned char *outbuffer)
@@ -234,8 +246,8 @@ static void convert565to32(int width, int height,
     for (row=0; row < height; row++)
     for (col=0; col < (unsigned int) width; col++)
     {
-        int srcidx = 2 * (row * line_length + col);
-        int dstidx = 4 * (row * width + col);
+        unsigned int srcidx = 2 * (row * line_length + col);
+        unsigned int dstidx = 4 * (row * width + col);
         /* BLUE  = 0 */
         outbuffer[dstidx+Blue] = (inbuffer[srcidx] & 0x1f) << 3;
         /* GREEN = 1 */
@@ -248,7 +260,7 @@ static void convert565to32(int width, int height,
     }
 }
 
-static void convert888to32(int width, int height,
+static void convert888to32(unsigned int width, unsigned int height,
                 int line_length,
                 unsigned char *inbuffer,
  			    unsigned char *outbuffer)
@@ -258,8 +270,8 @@ static void convert888to32(int width, int height,
     for (row=0; row<height; row++)
     for (col=0; col < (unsigned int) width; col++)
     {
-        int srcidx = 3 * (row * line_length + col);
-        int dstidx = 4 * (row * width + col);
+        unsigned int srcidx = 3 * (row * line_length + col);
+        unsigned int dstidx = 4 * (row * width + col);
     /* BLUE  = 0 */
 	    outbuffer[dstidx+Blue] = inbuffer[srcidx+srcBlue];
 	/* GREEN = 1 */
@@ -271,7 +283,7 @@ static void convert888to32(int width, int height,
     }
 }
 
-static void convert8888to32(int width, int height,
+static void convert8888to32(unsigned int width, unsigned int height,
                 int line_length,
                 unsigned char *inbuffer,
 			    unsigned char *outbuffer)
@@ -281,8 +293,8 @@ static void convert8888to32(int width, int height,
     for (row=0; row<height; row++)
     for (col=0; col < (unsigned int) width; col++)
     {
-        int srcidx = 4 * (row * line_length + col);
-        int dstidx = 4 * (row * width + col);
+        unsigned int srcidx = 4 * (row * line_length + col);
+        unsigned int dstidx = 4 * (row * width + col);
 	/* BLUE  = 0 */
     	outbuffer[dstidx+Blue] = inbuffer[srcidx+srcBlue];
 	/* GREEN = 1 */
@@ -290,20 +302,22 @@ static void convert8888to32(int width, int height,
 	/* RED   = 2 */
         outbuffer[dstidx+Red] = inbuffer[srcidx+srcRed];
 	/* ALPHA */
-        outbuffer[dstidx+Alpha] = srcAlpha >= 0 ? inbuffer[srcidx+srcAlpha] : 0;
+        outbuffer[dstidx+Alpha] = srcAlpha >= 0 ? inbuffer[srcidx+srcAlpha] : '\0';
     }
 }
 
 
 static void write_PNG(unsigned char *outbuffer, char *filename,
-				int width, int height, int interlace, int compression)
+				unsigned int width, unsigned int height, int interlace, int compression)
 {
-    int i;
+    unsigned int i;
     int bit_depth=0, color_type;
     png_bytep row_pointers[height];
     png_structp png_ptr;
     png_infop info_ptr;
     FILE *outfile;
+
+    memset((void*) row_pointers, (int) sizeof(png_bytep), (size_t) height);
 
     if (strcmp(filename, "-") == 0)
         outfile = stdout;
@@ -317,9 +331,9 @@ static void write_PNG(unsigned char *outbuffer, char *filename,
     }
 
     for (i=0; i<height; i++)
-	row_pointers[i] = outbuffer + i * 4 * width;
+	row_pointers[i] = (png_bytep) &outbuffer[i * 4 * width];
 
-
+    /*@-nullpass*/
     png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
 	(png_voidp) NULL, (png_error_ptr) NULL, (png_error_ptr) NULL);
 
@@ -332,6 +346,7 @@ static void write_PNG(unsigned char *outbuffer, char *filename,
 	png_destroy_write_struct(&png_ptr, (png_infopp) NULL);
 	fatal_error("Error: Couldn't create PNG info struct.");
     }
+    /*@+nullpass*/
 
     png_init_io(png_ptr, outfile);
 
@@ -362,7 +377,7 @@ static void write_PNG(unsigned char *outbuffer, char *filename,
 		  released memory of png_ptr and info_ptr */
 
 static void convert_and_write(unsigned char *inbuffer, char *filename,
-				int width, int height, int line_length, int bits, int interlace, int compression)
+				unsigned int width, unsigned int height, int line_length, int bits, int interlace, int compression)
 {
     size_t bufsize = (size_t) line_length * height * 4;
 
@@ -379,25 +394,22 @@ static void convert_and_write(unsigned char *inbuffer, char *filename,
     {
     case 15:
     	convert1555to32(width, height, line_length, inbuffer, outbuffer);
-	    write_PNG(outbuffer, filename, width, height, interlace, compression);
     	break;
     case 16:
         convert565to32(width, height, line_length, inbuffer, outbuffer);
-        write_PNG(outbuffer, filename, width, height, interlace, compression);
         break;
     case 24:
         convert888to32(width, height, line_length, inbuffer, outbuffer);
-        write_PNG(outbuffer, filename, width, height, interlace, compression);
         break;
     case 32:
         convert8888to32(width, height, line_length, inbuffer, outbuffer);
-        write_PNG(outbuffer, filename, width, height, interlace, compression);
         break;
     default:
         fprintf(stderr, "%d bits per pixel are not supported! ", bits);
         exit(EXIT_FAILURE);
     }
 
+    write_PNG(outbuffer, filename, width, height, interlace, compression);
     (void) free(outbuffer);
 }
 
@@ -518,7 +530,7 @@ int main(int argc, char **argv)
         get_framebufferdata(device, &fb_varinfo, &fb_fixedinfo, verbose);
 
         if ((UNDEFINED == ignore_alpha) && (fb_varinfo.transp.length > 0)) {
-            srcAlpha = fb_varinfo.transp.offset >> 3;
+            srcAlpha = (int) (fb_varinfo.transp.offset >> 3);
         } else {
             srcAlpha = -1; // not used
         }
@@ -535,14 +547,14 @@ int main(int argc, char **argv)
         if (UNDEFINED == line_length)
             line_length = (int) fb_fixedinfo.line_length/(fb_varinfo.bits_per_pixel>>3);
 
-        skip_bytes =  (fb_varinfo.yoffset * fb_varinfo.xres) * (fb_varinfo.bits_per_pixel >> 3);
+        skip_bytes =  (int) ((fb_varinfo.yoffset * fb_varinfo.xres) * (fb_varinfo.bits_per_pixel >> 3));
 
         fprintf(stderr, "Resolution: %ix%i depth %i\n", width, height, bitdepth);
 
         strncpy(infile, device, MAX_LEN - 1);
     }
 
-    buf_size = line_length * height * (((unsigned int) bitdepth + 7) >> 3);
+    buf_size = (size_t) (line_length * height * (((unsigned int) bitdepth + 7) >> 3));
 
     buf_p = (unsigned char*) malloc(buf_size);
 
@@ -559,7 +571,7 @@ int main(int argc, char **argv)
     if (UNDEFINED != old_vt)
     (void) change_to_vt((unsigned short int) old_vt);
 
-    convert_and_write(buf_p, outfile, width, height, line_length, bitdepth, interlace, png_compression);
+    convert_and_write(buf_p, outfile, (unsigned int) width, (unsigned int) height, line_length, bitdepth, interlace, png_compression);
 
     (void) free(buf_p);
 
