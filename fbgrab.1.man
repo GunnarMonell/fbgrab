@@ -15,7 +15,8 @@ X-windows desktop, as well as framebuffer applications.
 print usage information.
 .TP
 .B -a
-ignore the alpha channel, to support pixel formats like BGR32.
+ignore the alpha channel with drivers incorrectly setting but not 
+supporting an alpha channel.
 .TP
 .B -b bitdepth
 the number of bits per pixel used, optional when reading from device.
