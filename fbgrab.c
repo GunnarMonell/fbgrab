@@ -220,7 +220,7 @@ static void convert1555to32(unsigned int width, unsigned int height,
     unsigned int row;
     unsigned int col;
     for (row=0; row < height; row++)
-    for (col=0; col < (unsigned int) width; col++)
+    for (col=0; col < width; col++)
     {
         unsigned int srcidx = 2 * (row * line_length + col);
         unsigned int dstidx = 4 * (row * width + col);
@@ -244,7 +244,7 @@ static void convert565to32(unsigned int width, unsigned int height,
     unsigned int row;
     unsigned int col;
     for (row=0; row < height; row++)
-    for (col=0; col < (unsigned int) width; col++)
+    for (col=0; col < width; col++)
     {
         unsigned int srcidx = 2 * (row * line_length + col);
         unsigned int dstidx = 4 * (row * width + col);
@@ -268,7 +268,7 @@ static void convert888to32(unsigned int width, unsigned int height,
     unsigned int row;
     unsigned int col;
     for (row=0; row<height; row++)
-    for (col=0; col < (unsigned int) width; col++)
+    for (col=0; col < width; col++)
     {
         unsigned int srcidx = 3 * (row * line_length + col);
         unsigned int dstidx = 4 * (row * width + col);
@@ -291,7 +291,7 @@ static void convert8888to32(unsigned int width, unsigned int height,
     unsigned int row;
     unsigned int col;
     for (row=0; row<height; row++)
-    for (col=0; col < (unsigned int) width; col++)
+    for (col=0; col < width; col++)
     {
         unsigned int srcidx = 4 * (row * line_length + col);
         unsigned int dstidx = 4 * (row * width + col);
