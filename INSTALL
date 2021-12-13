@@ -1,4 +1,3 @@
-
 requirements to build:
 you need these on your system:
 libpng 
@@ -11,6 +10,9 @@ make
 to install 
 run 
 make install
+
+If you want to install to a different directory, use prefix flag like this:
+make prefix=/opt install
 
 Troubleshooting
 If you don't realize how to install splint, remove that row from the Makefile.
