@@ -96,11 +96,14 @@ FBGrab is a framebuffer screenshot program, capturing the linux frambuffer and c
 # Releasenotes
 
 ## Unreleased
-   $prefix flag was added to allow install to different directory like /opt. 
+   $prefix flag was added to allow install to different directory like /opt.
    Thanks to @davidak.
 
-   Remove some superfluous casts of variables to their type. 
-   Thanks to @sawuare. 
+   Remove some superfluous casts of variables to their type.
+   Thanks to @sawuare.
+
+   Setting compression level from commandline now work again.
+   Thanks to @anthony-loiseau-act.
 
 ## New March 25, 2021. Version 1.5
    New in this release is the option to ignore the values in an by the driver incorrectly set alpha channel.
