@@ -41,6 +41,7 @@
 #define	VERSION	"1.5"
 #define	DEFAULT_FB	"/dev/fb0"
 #define MAX_LEN 512
+#define MAX_LEN_STRNCPY MAX_LEN - 1
 #define UNDEFINED -1
 
 static int srcBlue = 0;
@@ -466,7 +467,7 @@ int main(int argc, char **argv)
 	    device = optarg;
 	    break;
 	case 'f':
-	    strncpy(infile, optarg, MAX_LEN);
+	    strncpy(infile, optarg, MAX_LEN_STRNCPY);
 	    break;
 	case 'h':
 	    height = atoi(optarg);
@@ -552,7 +553,7 @@ int main(int argc, char **argv)
 
         fprintf(stderr, "Resolution: %ix%i depth %i\n", width, height, bitdepth);
 
-        strncpy(infile, device, MAX_LEN - 1);
+        strncpy(infile, device, MAX_LEN_STRNCPY);
     }
 
     buf_size = (size_t) (line_length * height * (((unsigned int) bitdepth + 7) >> 3));
